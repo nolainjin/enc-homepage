@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E&C 3D 캐릭터 데모 비교</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #FFF8F0;
+            min-height: 100vh;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 3rem;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 1rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            background: white;
+            color: #666;
+        }
+
+        .tab-btn.active {
+            background: #2D5A3D;
+            color: white;
+            box-shadow: 0 10px 30px rgba(45, 90, 61, 0.3);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #f0f0f0;
+        }
+
+        .demo-area {
+            background: white;
+            border-radius: 2rem;
+            padding: 3rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            min-height: 400px;
+        }
+
+        .demo-content {
+            display: none;
+            text-align: center;
+        }
+
+        .demo-content.active {
+            display: block;
+        }
+
+        .demo-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .demo-desc {
+            color: #888;
+            margin-bottom: 2rem;
+        }
+
+        .characters {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            flex-wrap: wrap;
+        }
+
+        .character {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .character-name {
+            font-weight: 700;
+            margin-top: 1.5rem;
+        }
+
+        .character-type {
+            font-size: 0.8rem;
+            color: #999;
+        }
+
+        /* 방법 1: 이미지 + 애니메이션 */
+        .pseudo3d-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+
+        .pseudo3d-glow {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            filter: blur(40px);
+            opacity: 0.4;
+            animation: pulseGlow 3s ease-in-out infinite;
+        }
+
+        .pseudo3d-img {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 1rem;
+            object-fit: cover;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            animation: float3d 4s ease-in-out infinite;
+        }
+
+        .pseudo3d-sparkle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.4;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 0.6;
+            }
+        }
+
+        @keyframes float3d {
+
+            0%,
+            100% {
+                transform: translateY(0) rotateX(0) rotateY(0);
+            }
+
+            25% {
+                transform: translateY(-10px) rotateX(5deg) rotateY(5deg);
+            }
+
+            50% {
+                transform: translateY(-15px) rotateX(0) rotateY(0);
+            }
+
+            75% {
+                transform: translateY(-10px) rotateX(-5deg) rotateY(-5deg);
+            }
+        }
+
+        @keyframes sparkle {
+
+            0%,
+            100% {
+                opacity: 0.8;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.3;
+                transform: scale(0.5);
+            }
+        }
+
+        /* 방법 2: CSS 3D */
+        .css3d-container {
+            perspective: 1000px;
+            width: 160px;
+            height: 160px;
+        }
+
+        .css3d-hover {
+            width: 100%;
+            height: 100%;
+            transition: all 0.7s ease-out;
+            transform-style: preserve-3d;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+        }
+
+        .css3d-hover:hover {
+            transform: rotateY(15deg) rotateX(-10deg) scale(1.1);
+        }
+
+        .css3d-rotate {
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: spin3d 6s linear infinite;
+        }
+
+        .css3d-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @keyframes spin3d {
+            0% {
+                transform: rotateY(0deg);
+            }
+
+            100% {
+                transform: rotateY(360deg);
+            }
+        }
+
+        /* 방법 3: Lottie 스타일 */
+        .lottie-container {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lottie-ring {
+            position: absolute;
+            border-radius: 50%;
+            animation: pulseRing 2s ease-out infinite;
+        }
+
+        .lottie-ring.ring1 {
+            width: 200px;
+            height: 200px;
+            opacity: 0.2;
+        }
+
+        .lottie-ring.ring2 {
+            width: 240px;
+            height: 240px;
+            opacity: 0.1;
+            animation-delay: 0.5s;
+        }
+
+        .lottie-emoji {
+            font-size: 5rem;
+            z-index: 10;
+            animation: bounceGentle 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseRing {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.3;
+            }
+
+            50% {
+                transform: scale(1);
+                opacity: 0.1;
+            }
+
+            100% {
+                transform: scale(0.8);
+                opacity: 0.3;
+            }
+        }
+
+        @keyframes bounceGentle {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* 방법 4: CSS 도형 */
+        .shape-container {
+            width: 160px;
+            height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cloud-shape {
+            position: relative;
+            animation: cloudFloat 3s ease-in-out infinite;
+        }
+
+        .cloud-part {
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .cloud-main {
+            width: 64px;
+            height: 64px;
+            background: #FF7F6B;
+            position: relative;
+        }
+
+        .cloud-main .eye {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            top: 20px;
+        }
+
+        .cloud-main .eye.left {
+            left: 12px;
+        }
+
+        .cloud-main .eye.right {
+            right: 12px;
+        }
+
+        .cloud-main .cheek {
+            position: absolute;
+            width: 12px;
+            height: 8px;
+            background: #FFB6C1;
+            border-radius: 50%;
+            opacity: 0.5;
+            top: 28px;
+        }
+
+        .cloud-main .cheek.left {
+            left: 4px;
+        }
+
+        .cloud-main .cheek.right {
+            right: 4px;
+        }
+
+        .cube-shape {
+            animation: cubeWobble 2s ease-in-out infinite;
+        }
+
+        .cube-body {
+            width: 80px;
+            height: 80px;
+            background: #87CEEB;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 4px 4px 0 rgba(135, 206, 235, 0.5);
+        }
+
+        .cube-body .glasses {
+            position: absolute;
+            width: 24px;
+            height: 20px;
+            border: 2px solid white;
+            border-radius: 50%;
+            top: 16px;
+        }
+
+        .cube-body .glasses.left {
+            left: 8px;
+        }
+
+        .cube-body .glasses.right {
+            right: 8px;
+        }
+
+        .cube-body .glasses-bridge {
+            position: absolute;
+            width: 8px;
+            height: 2px;
+            background: white;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .cube-body .mouth {
+            position: absolute;
+            width: 16px;
+            height: 4px;
+            background: white;
+            border-radius: 4px;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        @keyframes cloudFloat {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(-2deg);
+            }
+
+            50% {
+                transform: translateY(-15px) rotate(2deg);
+            }
+        }
+
+        @keyframes cubeWobble {
+
+            0%,
+            100% {
+                transform: rotate(-3deg);
+            }
+
+            50% {
+                transform: rotate(3deg);
+            }
+        }
+
+        /* 비교 카드 */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .comparison-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .pros-cons {
+            font-size: 0.85rem;
+        }
+
+        .pros {
+            color: #22c55e;
+        }
+
+        .cons {
+            color: #ef4444;
+        }
+
+        .pros li,
+        .cons li {
+            margin-bottom: 0.3rem;
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .row {
+            display: flex;
+            gap: 3rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .group {
+            text-align: center;
+        }
+
+        .group-title {
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>3D 캐릭터 데모 비교</h1>
+        <p class="subtitle">몽글이와 또박이를 다양한 방법으로 구현한 데모입니다. 마음에 드는 방식을 선택해주세요!</p>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('pseudo3d')">1. 이미지 + 애니메이션<br><small>기존 이미지
+                    활용</small></button>
+            <button class="tab-btn" onclick="showTab('css3d')">2. CSS 3D<br><small>3D 변환 효과</small></button>
+            <button class="tab-btn" onclick="showTab('lottie')">3. Lottie 스타일<br><small>펄스/바운스</small></button>
+            <button class="tab-btn" onclick="showTab('shapes')">4. CSS 도형<br><small>도형 조합</small></button>
+        </div>
+
+        <div class="demo-area">
+            <!-- 방법 1: 이미지 + 애니메이션 -->
+            <div id="pseudo3d" class="demo-content active">
+                <h2 class="demo-title">이미지 + 애니메이션 효과</h2>
+                <p class="demo-desc">실제 캐릭터 이미지에 부드러운 애니메이션 적용</p>
+                <div class="characters">
+                    <div class="character">
+                        <div class="pseudo3d-container">
+                            <div class="pseudo3d-glow" style="background: #FF7F6B;"></div>
+                            <img src="images/characters/mongeuli.png" alt="몽글이" class="pseudo3d-img">
+                            <div class="pseudo3d-sparkle"></div>
+                        </div>
+                        <p class="character-name" style="color: #FF7F6B;">몽글이</p>
+                        <p class="character-type">이미지 + 애니메이션</p>
+                    </div>
+                    <div class="character">
+                        <div class="pseudo3d-container">
+                            <div class="pseudo3d-glow" style="background: #87CEEB;"></div>
+                            <img src="images/characters/ttobaki.png" alt="또박이" class="pseudo3d-img">
+                            <div class="pseudo3d-sparkle"></div>
+                        </div>
+                        <p class="character-name" style="color: #87CEEB;">또박이</p>
+                        <p class="character-type">이미지 + 애니메이션</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 방법 2: CSS 3D -->
+            <div id="css3d" class="demo-content">
+                <h2 class="demo-title">CSS 3D Transform</h2>
+                <p class="demo-desc">마우스를 올려보세요 (호버 효과) + 자동 회전</p>
+                <div class="row">
+                    <div class="group">
+                        <p class="group-title">호버 효과</p>
+                        <div class="characters">
+                            <div class="character">
+                                <div class="css3d-container">
+                                    <div class="css3d-hover">
+                                        <img src="images/characters/mongeuli.png" alt="몽글이" class="css3d-img">
+                                    </div>
+                                </div>
+                                <p class="character-name" style="color: #FF7F6B;">몽글이</p>
+                                <p class="character-type">CSS 3D 호버</p>
+                            </div>
+                            <div class="character">
+                                <div class="css3d-container">
+                                    <div class="css3d-hover">
+                                        <img src="images/characters/ttobaki.png" alt="또박이" class="css3d-img">
+                                    </div>
+                                </div>
+                                <p class="character-name" style="color: #87CEEB;">또박이</p>
+                                <p class="character-type">CSS 3D 호버</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="group">
+                        <p class="group-title">자동 회전</p>
+                        <div class="characters">
+                            <div class="character">
+                                <div class="css3d-container">
+                                    <div class="css3d-rotate">
+                                        <img src="images/characters/mongeuli.png" alt="몽글이" class="css3d-img">
+                                    </div>
+                                </div>
+                                <p class="character-name" style="color: #FF7F6B;">몽글이</p>
+                                <p class="character-type">CSS 3D 회전</p>
+                            </div>
+                            <div class="character">
+                                <div class="css3d-container">
+                                    <div class="css3d-rotate">
+                                        <img src="images/characters/ttobaki.png" alt="또박이" class="css3d-img">
+                                    </div>
+                                </div>
+                                <p class="character-name" style="color: #87CEEB;">또박이</p>
+                                <p class="character-type">CSS 3D 회전</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 방법 3: Lottie 스타일 -->
+            <div id="lottie" class="demo-content">
+                <h2 class="demo-title">Lottie 스타일 애니메이션</h2>
+                <p class="demo-desc">부드러운 펄스 + 바운스 애니메이션</p>
+                <div class="characters">
+                    <div class="character">
+                        <div class="lottie-container" style="background: #fff0ed;">
+                            <div class="lottie-ring ring1" style="background: #FF7F6B;"></div>
+                            <div class="lottie-ring ring2" style="background: #FF7F6B;"></div>
+                            <span class="lottie-emoji">🌥️</span>
+                        </div>
+                        <p class="character-name" style="color: #FF7F6B;">몽글이</p>
+                        <p class="character-type">Lottie 스타일</p>
+                    </div>
+                    <div class="character">
+                        <div class="lottie-container" style="background: #e3f2fd;">
+                            <div class="lottie-ring ring1" style="background: #87CEEB;"></div>
+                            <div class="lottie-ring ring2" style="background: #87CEEB;"></div>
+                            <span class="lottie-emoji">📦</span>
+                        </div>
+                        <p class="character-name" style="color: #87CEEB;">또박이</p>
+                        <p class="character-type">Lottie 스타일</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 방법 4: CSS 도형 -->
+            <div id="shapes" class="demo-content">
+                <h2 class="demo-title">CSS 도형 조합 캐릭터</h2>
+                <p class="demo-desc">원/사각형을 조합하여 만든 심플한 캐릭터</p>
+                <div class="characters">
+                    <div class="character">
+                        <div class="shape-container">
+                            <div class="cloud-shape">
+                                <div class="cloud-part"
+                                    style="background: rgba(255,127,107,0.5); width: 48px; height: 48px; left: -24px; top: 16px;">
+                                </div>
+                                <div class="cloud-part"
+                                    style="background: rgba(255,127,107,0.5); width: 40px; height: 40px; left: 32px; top: 8px;">
+                                </div>
+                                <div class="cloud-main" style="border-radius: 50%;">
+                                    <div class="eye left"></div>
+                                    <div class="eye right"></div>
+                                    <div class="cheek left"></div>
+                                    <div class="cheek right"></div>
+                                </div>
+                                <div class="cloud-part"
+                                    style="background: rgba(255,127,107,0.5); width: 32px; height: 32px; right: -16px; top: 24px;">
+                                </div>
+                            </div>
+                        </div>
+                        <p class="character-name" style="color: #FF7F6B;">몽글이</p>
+                        <p class="character-type">CSS 도형</p>
+                    </div>
+                    <div class="character">
+                        <div class="shape-container">
+                            <div class="cube-shape">
+                                <div class="cube-body">
+                                    <div class="glasses left"></div>
+                                    <div class="glasses right"></div>
+                                    <div class="glasses-bridge"></div>
+                                    <div class="mouth"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="character-name" style="color: #87CEEB;">또박이</p>
+                        <p class="character-type">CSS 도형</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 비교 -->
+        <div class="comparison-grid">
+            <div class="comparison-card">
+                <h3>이미지 + 애니메이션</h3>
+                <div class="pros-cons">
+                    <p class="section-title pros">✅ 장점</p>
+                    <ul class="pros">
+                        <li>기존 이미지 활용</li>
+                        <li>고퀄리티 유지</li>
+                        <li>가벼움</li>
+                    </ul>
+                    <p class="section-title cons" style="margin-top: 0.8rem;">⚠️ 단점</p>
+                    <ul class="cons">
+                        <li>진짜 3D 아님</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="comparison-card">
+                <h3>CSS 3D</h3>
+                <div class="pros-cons">
+                    <p class="section-title pros">✅ 장점</p>
+                    <ul class="pros">
+                        <li>3D 변환 효과</li>
+                        <li>호버 인터랙션</li>
+                    </ul>
+                    <p class="section-title cons" style="margin-top: 0.8rem;">⚠️ 단점</p>
+                    <ul class="cons">
+                        <li>회전 시 평면으로 보임</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="comparison-card">
+                <h3>Lottie 스타일</h3>
+                <div class="pros-cons">
+                    <p class="section-title pros">✅ 장점</p>
+                    <ul class="pros">
+                        <li>눈에 띄는 효과</li>
+                        <li>따뜻한 느낌</li>
+                    </ul>
+                    <p class="section-title cons" style="margin-top: 0.8rem;">⚠️ 단점</p>
+                    <ul class="cons">
+                        <li>심플한 표현</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="comparison-card">
+                <h3>CSS 도형</h3>
+                <div class="pros-cons">
+                    <p class="section-title pros">✅ 장점</p>
+                    <ul class="pros">
+                        <li>초경량</li>
+                        <li>완전 커스텀</li>
+                    </ul>
+                    <p class="section-title cons" style="margin-top: 0.8rem;">⚠️ 단점</p>
+                    <ul class="cons">
+                        <li>디테일 부족</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            // 모든 탭 버튼 비활성화
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            // 모든 콘텐츠 숨기기
+            document.querySelectorAll('.demo-content').forEach(content => content.classList.remove('active'));
+
+            // 선택한 탭 활성화
+            event.target.closest('.tab-btn').classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+    </script>
+</body>
+
+</html>
